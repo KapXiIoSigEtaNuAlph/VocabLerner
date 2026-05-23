@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Vocab Matcher</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+	<div class="csv-upload-box">
+		<p style="margin-top: 0;"><strong>Bulk Upload (CSV)</strong></p>
+		<input type="file" id="csvFileInput" accept=".csv" style="margin-bottom: 10px;">
+		<button onclick="handleCSVUpload()" style="background: #a29bfe;">Upload & Generate</button>
+		<p style="font-size: 0.8rem; color: #666;">Format: Word, Definition (no headers)</p>
+	</div>
+
+	<div class="setup-container" id="setup">
+		<h2>Study Set Creator</h2>
+		<div class="row-input">
+			Number of pairs:
+			<input type="number" id="rowCount" value="4" min="1" max="20" style="width: 60px;">
+			<button onclick="generateInputs()">Set Rows</button>
+		</div>
+		<div id="input-list" class="input-grid"></div>
+		<button onclick="startGame()" style="margin-top: 20px; width: 100%;">Shuffle & Start Game</button>
+	</div>
+
+	<div id="game-area">
+		<canvas id="lineCanvas"></canvas>
+	</div>
+
+	<div class="controls-bar" id="controls">
+		<button onclick="checkAnswers()">Check Results</button>
+		<button onclick="location.reload()" style="background: #636e72;">Create New List</button>
+	</div>
+
+	<script src="script.js"></script>
+</body>
+
+</html>
