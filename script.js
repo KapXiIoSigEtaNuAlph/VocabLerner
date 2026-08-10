@@ -1,22 +1,67 @@
 let pairs = [];
 let connections = [];
 let selectedWordEl = null;
-let isLocked = false; // NEW: Tracks if the board is locked for checking
+let isLocked = false; // Tracks if the board is locked for checking
 
 function generateInputs(data = null) {
-  const count = document.getElementById('rowCount').value;
-  const container = document.getElementById('input-list');
+  const countInput = document.getElementById('rowCount');
+  let count = parseInt(countInput.value) || 0;
 
-  container.innerHTML = '<div><strong>Word</strong></div><div><strong>Definition</strong></div>';
+  if (data) {
+    count = data.length;
+    countInput.value = count;
+  }
+
+  const container = document.getElementById('input-list');
+  container.innerHTML = `
+    <div class="input-row-header">
+      <div><strong>Word</strong></div>
+      <div><strong>Definition</strong></div>
+      <div></div>
+    </div>
+  `;
 
   for (let i = 0; i < count; i++) {
     const wVal = (data && data[i]) ? data[i].word : '';
     const dVal = (data && data[i]) ? data[i].def : '';
 
-    container.innerHTML += `
-        <input type="text" class="w-in" value="${wVal}" placeholder="Word ${i + 1}">
-        <textarea class="d-in" placeholder="Definition ${i + 1}" rows="1">${dVal}</textarea>
-    `;
+    const row = document.createElement('div');
+    row.className = 'input-row';
+
+    const wInput = document.createElement('input');
+    wInput.type = 'text';
+    wInput.className = 'w-in';
+    wInput.value = wVal;
+    wInput.placeholder = `Word ${i + 1}`;
+
+    const dTextarea = document.createElement('textarea');
+    dTextarea.className = 'd-in';
+    dTextarea.value = dVal;
+    dTextarea.placeholder = `Definition ${i + 1}`;
+    dTextarea.rows = 1;
+
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'delete-btn';
+    delBtn.innerHTML = '&#10005;'; // X icon
+    delBtn.title = 'Delete Row';
+    delBtn.onclick = function () { removeRow(this); };
+
+    row.appendChild(wInput);
+    row.appendChild(dTextarea);
+    row.appendChild(delBtn);
+
+    container.appendChild(row);
+  }
+}
+
+function removeRow(btn) {
+  const row = btn.closest('.input-row');
+  if (row) {
+    row.remove();
+    // Update number of pairs counter
+    const currentRows = document.querySelectorAll('.input-row').length;
+    document.getElementById('rowCount').value = currentRows;
   }
 }
 
@@ -71,7 +116,6 @@ function renderBoard() {
 }
 
 function selectWord(el) {
-  // Prevent selection if the board is locked for checking
   if (isLocked || el.classList.contains('correct') || el.querySelector('.def-dot')) return;
 
   document.querySelectorAll('#game-area .item').forEach(i => {
@@ -83,7 +127,6 @@ function selectWord(el) {
 }
 
 function selectDef(el) {
-  // Prevent selection if the board is locked for checking
   if (isLocked || !selectedWordEl || el.classList.contains('correct') || !el.querySelector('.def-dot')) return;
 
   const wordId = selectedWordEl.dataset.id;
@@ -134,10 +177,9 @@ function drawLines() {
 
 function checkAnswers() {
   if (isLocked) return;
-  isLocked = true; // Lock the board so users can't change answers
+  isLocked = true;
   let hasMistakes = false;
 
-  // Check if they missed connecting any items
   if (connections.length < pairs.length) {
     hasMistakes = true;
   }
@@ -150,37 +192,32 @@ function checkAnswers() {
       c.wEl.classList.add('wrong');
       c.dEl.classList.add('wrong');
       hasMistakes = true;
-      // Note: The timer that removed the 'wrong' class was deleted so errors stay visible
     }
   });
 
-  // Dynamically morph the main button based on the results
   const checkBtn = document.querySelector('#controls button:first-child');
   if (hasMistakes) {
     checkBtn.innerText = "Learn Better !!!";
     checkBtn.onclick = resetRound;
-    checkBtn.style.background = "var(--error)"; // Match the red error color
+    checkBtn.style.background = "var(--error)";
   } else {
     checkBtn.innerText = "Nice! Play Again?";
-    checkBtn.onclick = startGame; // Completely reshuffles and starts over
-    checkBtn.style.background = "var(--success)"; // Match the green success color
+    checkBtn.onclick = startGame;
+    checkBtn.style.background = "var(--success)";
   }
 }
 
-// NEW FUNCTION: Clears the player's mistakes and lets them try drawing lines again
 function resetRound() {
   isLocked = false;
   connections = [];
   selectedWordEl = null;
 
-  // Wipe styling from all items
   document.querySelectorAll('#game-area .item').forEach(item => {
     item.className = 'item';
   });
 
-  drawLines(); // Clears the visual canvas connections
+  drawLines();
 
-  // Revert button back to default
   const checkBtn = document.querySelector('#controls button:first-child');
   checkBtn.innerText = "Check Results";
   checkBtn.onclick = checkAnswers;
@@ -216,7 +253,6 @@ function handleCSVUpload() {
     });
 
     if (parsedData.length > 0) {
-      document.getElementById('rowCount').value = parsedData.length;
       generateInputs(parsedData);
       alert(`Successfully loaded ${parsedData.length} pairs!`);
     } else {
